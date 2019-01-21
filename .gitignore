@@ -1,4 +1,4 @@
-variables.tf
+auth.tf
 modules/
 .terraform/
 *.tfstate*
