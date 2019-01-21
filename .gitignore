@@ -1,0 +1,4 @@
+variables.tf
+modules/
+.terraform/
+*.tfstate*
