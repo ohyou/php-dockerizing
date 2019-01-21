@@ -5,7 +5,7 @@ locals {
     "tenant_name", "${lookup(var.cloud, "tenant_name")}",
     "user_name", "${lookup(var.cloud, "user_name")}",
     "password", "${lookup(var.cloud, "password")}",
-    "region", "${lookup(var.cloud, "region", "ru-1")}",
+    "region", "${lookup(var.cloud, "region", "${local.openstack["region"]}")}",
   )}"
 
   cloud = "${map(
@@ -13,6 +13,8 @@ locals {
     "region", "${local.openstack["region"]}",
     "zone", "${lookup(var.cloud, "zone", "${local.openstack["region"]}a")}"
   )}"
+
+  ssh = "${file("~/.ssh/id_rsa")}"
 }
 
 provider "openstack" {
@@ -24,14 +26,16 @@ provider "openstack" {
   region      = "${local.openstack["region"]}"
 }
 
+
+
 module "keypair" {
-  source  = "github.com/kodix/terraform-selectel/modules/keypair"
+  source  = "github.com/ohyou/terraform-selectel/modules/keypair"
   cloud   = "${local.cloud}"
-  private = "${lookup(var.ssh, "file")}"
+  private = "${local.ssh}"
 }
 
 module "network" {
-  source = "github.com/kodix/terraform-selectel/modules/network"
+  source = "github.com/ohyou/terraform-selectel/modules/network"
   cloud  = "${local.cloud}"
 
   # lan {
@@ -51,7 +55,7 @@ module "network" {
 
 
 module "manager" {
-  source  = "github.com/kodix/terraform-selectel/modules/instance"
+  source  = "github.com/ohyou/terraform-selectel/modules/instance"
   cloud   = "${local.cloud}"
   name    = "manager"
   keypair = "${module.keypair.name}"
