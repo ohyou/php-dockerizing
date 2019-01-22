@@ -13,6 +13,8 @@ locals {
     "region", "${local.openstack["region"]}",
     "zone", "${lookup(var.cloud, "zone")}"
   )}"
+
+  project_name = "audi-park.ru"
 }
 
 provider "openstack" {
@@ -89,10 +91,17 @@ resource "null_resource" "manager-init" {
     destination = "/tmp/install_docker.sh"
   }
 
+  provisioner "file" {
+    source      = "../../scripts/fetch_project.sh"
+    destination = "/tmp/fetch_project.sh"
+  }
+
   provisioner "remote-exec" {
     inline = [
       "chmod +x /tmp/install_docker.sh",
-      "/tmp/install_docker.sh"
+      "chmod +x /tmp/fetch_project.sh",
+      "/tmp/install_docker.sh",
+      "/tmp/fetch_project.sh ${local.project_name}"
     ]
   }
 }

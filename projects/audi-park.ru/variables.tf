@@ -5,6 +5,6 @@ variable "cloud" {
     user_name   = "audi"
     password    = "70lR9Pu3phVo"
     region      = "ru-2"
-    zone        = "ru-2a"
+    zone        = "ru-2b"
   }
 }
