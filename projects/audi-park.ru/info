@@ -1,0 +1,4 @@
+ARG php-version=5.4.37
+ARG node-version=0.12.0
+ARG npm-version=2.7.4
+ARG nginx-version=1.10.2

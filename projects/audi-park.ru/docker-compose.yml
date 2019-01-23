@@ -1,8 +1,4 @@
 version: "3.7"
 
 services:
-  node:
-    build:
-      context: /tmp/
-      dockerfile: Dockerfile
-      
+  
