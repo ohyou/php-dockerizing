@@ -51,10 +51,10 @@ module "network" {
   ]
 }
 
-module "manager" {
+module "instance" {
   source  = "github.com/ohyou/terraform-selectel/modules/instance"
   cloud   = "${local.cloud}"
-  name    = "manager"
+  name    = "instance"
   keypair = "${module.keypair.name}"
 
   lan {
@@ -78,11 +78,61 @@ module "manager" {
   }
 }
 
-resource "null_resource" "manager-init" {
-  depends_on = ["module.manager"]
+module "storage" {
+  source  = "github.com/ohyou/terraform-selectel/modules/instance"
+  cloud   = "${local.cloud}"
+  name    = "storage"
+  keypair = "${module.keypair.name}"
+
+  lan {
+    uuid    = "${module.network.lan["uuid"]}"
+    address = "${module.network.lan["gateway"]}"
+  }
+
+  flavor {
+    cpu = 1
+    ram = 2048
+  }
+
+  disk {
+    size  = 30
+    type  = "basic"
+    image = "Fedora 28 64-bit"
+  }
+}
+
+resource "null_resource" "storage-init" {
+  depends_on = ["module.storage"]
 
   connection {
-    host        = "${lookup(module.manager.instance[0], "wan")}"
+    bastion_host        = "${lookup(module.instance.instance[0], "wan")}"
+    bastion_private_key = "${module.keypair.private}"
+    host                = "${lookup(module.storage.instance[0], "lan")}"
+    private_key         = "${module.keypair.private}"
+    timeout             = "20s"
+  }
+
+  provisioner "file" {
+    source      = "./src/audi-park.ru"
+    destination = "/work/www/"
+  }
+
+  provisioner "file" {
+    source      = "./configs/"
+    destination = "/work/configs/"
+  }
+
+  provisioner "file" {
+    source      = "./Dockerfile"
+    destination = "/work/configs/Dockerfile"
+  }
+}
+
+resource "null_resource" "instance-init" {
+  depends_on = ["null_resource.storage-init"]
+
+  connection {
+    host        = "${lookup(module.instance.instance[0], "wan")}"
     private_key = "${module.keypair.private}"
   }
 
@@ -101,7 +151,8 @@ resource "null_resource" "manager-init" {
       "chmod +x /tmp/install_docker.sh",
       "chmod +x /tmp/fetch_project.sh",
       "/tmp/install_docker.sh",
-      "/tmp/fetch_project.sh ${local.project_name}"
+      "/tmp/fetch_project.sh ${local.project_name} ${lookup(module.storage.instance[0], "lan")}",
+      "/tmp/configure.sh"
     ]
   }
 }

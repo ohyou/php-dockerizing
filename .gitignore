@@ -3,3 +3,4 @@ variables.tf
 modules/
 .terraform/
 *.tfstate*
+src/
