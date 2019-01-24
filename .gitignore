@@ -4,3 +4,4 @@ modules/
 .terraform/
 *.tfstate*
 src/
+src.tar.gz
